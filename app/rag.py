@@ -1,10 +1,10 @@
 from app.config import get_settings
+from app.excel_agent import try_answer_excel_question
 from app.mistral_client import MistralService
 from app.models import ChatRequest, ChatResponse, Source
+from app.rag_constants import MISSING_DATA_ANSWER
 from app.search_store import SearchStore
 
-
-MISSING_DATA_ANSWER = "insufficient information to proceed further with analysis"
 
 
 SYSTEM_PROMPT = f"""You are the FM Service Hub RFQ assistant.
@@ -32,6 +32,10 @@ class RagService:
         self._search = SearchStore()
 
     async def answer(self, request: ChatRequest) -> ChatResponse:
+        excel_answer = try_answer_excel_question(request.question)
+        if excel_answer:
+            return excel_answer
+
         top_k = max(self._settings.top_k, 5)
         filter_expression = _filter_for_question(request.question)
         query_embedding = (await self._mistral.embed([request.question]))[0]
@@ -82,6 +86,7 @@ def _format_source(index: int, source: Source) -> str:
         location_parts.append(source.section)
     location = ", ".join(location_parts)
     return f"[{index}] {location}\n{source.content}"
+
 
 
 

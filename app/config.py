@@ -1,4 +1,4 @@
-﻿from functools import lru_cache
+from functools import lru_cache
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -44,8 +44,10 @@ class Settings(BaseSettings):
     chunk_overlap: int = Field(default=180, ge=0)
     top_k: int = Field(default=5, ge=1, le=20)
     embedding_dimensions: int = Field(default=768, ge=1)
+    excel_source_path: str = "FM SERVICE HUB"
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
