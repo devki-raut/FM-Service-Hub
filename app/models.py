@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 
 
 class Source(BaseModel):
@@ -9,6 +9,14 @@ class Source(BaseModel):
     content: str
 
 
+class ImageReference(BaseModel):
+    document_name: str
+    page: int
+    url: str
+    data_url: str | None = None
+    caption: str | None = None
+
+
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1)
     conversation_id: str | None = None
@@ -17,6 +25,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sources: list[Source]
+    images: list[ImageReference] = Field(default_factory=list)
 
 
 class HealthResponse(BaseModel):

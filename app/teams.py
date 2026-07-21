@@ -1,6 +1,6 @@
-﻿from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response
 from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, TurnContext
-from botbuilder.schema import Activity
+from botbuilder.schema import Activity, Attachment
 
 from app.config import get_settings
 from app.models import ChatRequest
@@ -27,6 +27,15 @@ async def messages(request: Request) -> Response:
             return
         response = await rag.answer(ChatRequest(question=text))
         await turn_context.send_activity(response.answer)
+        if response.images:
+            base_url = str(request.base_url).rstrip("/")
+            for image in response.images:
+                attachment = Attachment(
+                    content_type="image/png",
+                    content_url=f"{base_url}{image.url}",
+                    name=image.caption or image.document_name,
+                )
+                await turn_context.send_activity(Activity(type="message", attachments=[attachment]))
 
     await adapter.process_activity(activity, auth_header, turn_logic)
     return Response(status_code=201)

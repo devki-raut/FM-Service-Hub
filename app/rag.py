@@ -6,6 +6,7 @@ from app.mistral_client import MistralService
 from app.models import ChatRequest, ChatResponse, Source
 from app.rag_constants import MISSING_DATA_ANSWER
 from app.search_store import SearchStore
+from app.visuals import images_for_question
 
 
 
@@ -16,6 +17,7 @@ Use extractive wording: preserve the source document terminology and do not add 
 For definition, purpose, or "why" questions, answer with the closest supported source wording in 1-3 short sentences.
 Missing data protocol: if the source excerpts do not contain enough information, state exactly: {MISSING_DATA_ANSWER}
 Conciseness: keep answers short, precise, and to the point.
+Visual support: when the question asks for an image, layout, diagram, figure, or visual, answer briefly in text; relevant images are returned separately by the application.
 For Excel aggregate or count questions, prefer Excel summary excerpts first, then row excerpts for examples or details.
 Use this answer format for count questions:
 The overall count of <subject> for <period> is **<row count> rows** (or **<unique count> unique <identifier>**) based on the **<basis column>** year counts.
@@ -79,7 +81,8 @@ class RagService:
         answer = await self._mistral.complete(messages)
         if answer.strip().casefold() == MISSING_DATA_ANSWER.casefold():
             return ChatResponse(answer=MISSING_DATA_ANSWER, sources=[])
-        return ChatResponse(answer=answer, sources=sources)
+        images = images_for_question(request.question, sources)
+        return ChatResponse(answer=answer, sources=sources, images=images)
 
 
 def _filter_for_question(question: str) -> str | None:
