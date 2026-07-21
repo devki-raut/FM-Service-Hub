@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     azure_search_endpoint: str = ""
     azure_search_api_key: str = ""
     azure_search_index: str = "fm-service-hub-docs"
+    azure_search_min_score: float = Field(default=0.0, ge=0)
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "rag-source-documents"

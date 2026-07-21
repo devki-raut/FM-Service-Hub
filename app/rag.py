@@ -1,3 +1,5 @@
+import re
+
 from app.config import get_settings
 from app.excel_agent import try_answer_excel_question
 from app.mistral_client import MistralService
@@ -22,7 +24,24 @@ Do not include source or excerpt labels in the answer text; sources are returned
 If the excerpt only supports one count, omit the parenthetical unique-count clause.
 """
 
-EXCEL_TERMS = {"branch", "complaint", "complaints", "count", "critical", "customer", "division", "equipment", "excel", "market", "overall", "rows", "sheet", "status", "total", "warranty", "cx2000"}
+EXCEL_FILTER_TERMS = {
+    "branch",
+    "complaint",
+    "complaints",
+    "critical",
+    "customer",
+    "division",
+    "excel",
+    "market",
+    "record",
+    "records",
+    "row",
+    "rows",
+    "sheet",
+    "status",
+    "trip",
+    "warranty",
+}
 
 
 class RagService:
@@ -58,13 +77,31 @@ class RagService:
             },
         ]
         answer = await self._mistral.complete(messages)
+        if answer.strip().casefold() == MISSING_DATA_ANSWER.casefold():
+            return ChatResponse(answer=MISSING_DATA_ANSWER, sources=[])
         return ChatResponse(answer=answer, sources=sources)
 
 
 def _filter_for_question(question: str) -> str | None:
-    lowered = question.lower()
-    if any(term in lowered for term in EXCEL_TERMS):
+    lowered = question.casefold()
+    tokens = set(re.findall(r"[a-z0-9]+", lowered))
+    asks_excel = False
+
+    if "excel" in tokens or "sheet" in tokens:
+        asks_excel = True
+    if "complaint no" in lowered or "complaint number" in lowered:
+        asks_excel = True
+    if {"complaint", "complaints"} & tokens:
+        asks_excel = True
+    if ({"row", "rows", "record", "records"} & tokens) and (EXCEL_FILTER_TERMS & tokens):
+        asks_excel = True
+    if asks_excel:
         return "file_type eq 'excel'"
+
+    if "cx2000" in tokens and ({"manual", "pdf", "document", "doc"} & tokens):
+        return "document_name eq 'CX2000 Users Manual.pdf'"
+    if "cx2000" in tokens:
+        return "file_type ne 'excel'"
     return None
 
 

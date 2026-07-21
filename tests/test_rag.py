@@ -1,7 +1,8 @@
 import asyncio
 
 from app.models import ChatRequest
-from app.rag import MISSING_DATA_ANSWER, RagService, SYSTEM_PROMPT
+from app.rag import MISSING_DATA_ANSWER, RagService, SYSTEM_PROMPT, _filter_for_question
+from app.search_store import SearchStore
 
 
 class FakeMistral:
@@ -12,6 +13,23 @@ class FakeMistral:
 class EmptySearch:
     def search(self, query, embedding, top_k, filter_expression=None):
         return []
+
+
+class MissingAnswerMistral(FakeMistral):
+    async def complete(self, messages):
+        return MISSING_DATA_ANSWER
+
+
+class LowConfidenceSearch:
+    def search(self, query, embedding, top_k, filter_expression=None):
+        return [
+            {
+                "@search.score": 0.031,
+                "document_name": "Vendor Copy of CX2000 Complaints 26.xlsx",
+                "section": "Complaint Analysis rows 3002-3101",
+                "content": "This is a long enough excerpt to pass the minimum content length filter, but it does not contain enough information to answer the question.",
+            }
+        ]
 
 
 def test_rag_returns_exact_missing_data_answer_when_no_sources():
@@ -26,6 +44,34 @@ def test_rag_returns_exact_missing_data_answer_when_no_sources():
     assert response.sources == []
 
 
+def test_rag_does_not_return_sources_when_model_reports_missing_data():
+    service = object.__new__(RagService)
+    service._settings = type("Settings", (), {"top_k": 5})()
+    service._mistral = MissingAnswerMistral()
+    service._search = LowConfidenceSearch()
+
+    response = asyncio.run(service.answer(ChatRequest(question="Unsupported question")))
+
+    assert response.answer == MISSING_DATA_ANSWER
+    assert response.sources == []
+
+
+
+def test_filter_does_not_force_cx2000_manual_questions_to_excel():
+    assert _filter_for_question("What is CX2000 equipment commissioning procedure?") is None
+
+
+def test_filter_limits_explicit_complaint_questions_to_excel():
+    assert _filter_for_question("What is the status of complaint AFKK25002022802?") == "file_type eq 'excel'"
+
+def test_filter_routes_explicit_cx2000_manual_questions_to_manual_pdf():
+    assert _filter_for_question("From CX2000 Users Manual PDF explain calibration") == "document_name eq 'CX2000 Users Manual.pdf'"
+
+
+def test_filter_excludes_excel_for_general_cx2000_questions():
+    assert _filter_for_question("How to calibrate CX2000?") == "file_type ne 'excel'"
+
+
 def test_system_prompt_contains_alignment_and_conciseness_rules():
     assert "answer strictly from the retrieved source excerpts" in SYSTEM_PROMPT
     assert MISSING_DATA_ANSWER in SYSTEM_PROMPT
@@ -37,7 +83,23 @@ def test_system_prompt_contains_alignment_and_conciseness_rules():
     assert "*(Source: Excerpt [n])*" not in SYSTEM_PROMPT
 
 
+class FakeSearchClient:
+    def search(self, **kwargs):
+        long_content = "A relevant excerpt with enough detail to pass the content length filter for search results."
+        return [
+            {"@search.score": 0.031, "document_name": "low.xlsx", "content": long_content},
+            {"@search.score": 0.05, "document_name": "high.pdf", "content": long_content},
+        ]
 
+
+def test_search_store_filters_results_below_min_score():
+    store = object.__new__(SearchStore)
+    store._client = FakeSearchClient()
+    store._min_score = 0.04
+
+    results = store.search("relevant question", [0.0], top_k=5)
+
+    assert [result["document_name"] for result in results] == ["high.pdf"]
 
 
 class ExcelSearchShouldNotRun:
