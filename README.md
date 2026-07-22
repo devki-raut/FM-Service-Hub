@@ -44,13 +44,22 @@ curl -X POST http://localhost:8000/api/chat `
   -d "{\"question\":\"Summarize the FM Service Hub requirements from the RFQ.\"}"
 ```
 
+## Streamlit Client App
+
+Run the app:
+
+```powershell
+streamlit run streamlit_app.py
+```
+
+The app opens a single FM Service Hub assistant experience for client walkthroughs.
+
 ## Teams Endpoint
 
 Configure the Bot Framework messaging endpoint as:
 
 ```text
-https://<your-host>/api/messages
+https://<your-host>/fmservicehub-poc/api/messages
 ```
 
 The same retrieval pipeline is used for the REST chat endpoint and Teams.
-
