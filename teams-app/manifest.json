@@ -1,9 +1,9 @@
 {
     "$schema":  "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
     "manifestVersion":  "1.16",
-    "version":  "1.0.0",
+    "version":  "2.0.0",
     "id":  "3056d42c-4d5f-4289-9d73-8048f7a24926",
-    "packageName":  "com.forbes.fmservicehub.ragbot",
+    "packageName":  "com.emergys.fmservicehub.ragbot",
     "developer":  {
                       "name":  "Emergys Solutions",
                       "websiteUrl":  "https://dockerpoc-webapp01.azurewebsites.net/fmservicehub-poc/",
