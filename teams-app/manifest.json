@@ -1,39 +1,47 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
-  "manifestVersion": "1.16",
-  "version": "1.0.0",
-  "id": "3056d42c-4d5f-4289-9d73-8048f7a24926",
-  "packageName": "com.forbes.fmservicehub.ragbot",
-  "developer": {
-    "name": "Forbes Marshall",
-    "websiteUrl": "https://www.forbesmarshall.com",
-    "privacyUrl": "https://www.forbesmarshall.com/privacy",
-    "termsOfUseUrl": "https://www.forbesmarshall.com/terms"
-  },
-  "name": {
-    "short": "FM Service Hub",
-    "full": "FM Service Hub RAG Bot"
-  },
-  "description": {
-    "short": "Ask questions from FM Service Hub documents.",
-    "full": "FM Service Hub RAG Bot answers questions using the configured knowledge-bank documents."
-  },
-  "icons": {
-    "color": "color.png",
-    "outline": "outline.png"
-  },
-  "accentColor": "#1F6F78",
-  "bots": [
-    {
-      "botId": "3056d42c-4d5f-4289-9d73-8048f7a24926",
-      "scopes": [
-        "personal",
-        "team",
-        "groupchat"
-      ],
-      "supportsFiles": false,
-      "isNotificationOnly": false
-    }
+    "$schema":  "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+    "manifestVersion":  "1.16",
+    "version":  "1.0.0",
+    "id":  "3056d42c-4d5f-4289-9d73-8048f7a24926",
+    "packageName":  "com.forbes.fmservicehub.ragbot",
+    "developer":  {
+                      "name":  "Emergys Solutions",
+                      "websiteUrl":  "https://dockerpoc-webapp01.azurewebsites.net/fmservicehub-poc/",
+                      "privacyUrl":  "https://dockerpoc-webapp01.azurewebsites.net/fmservicehub-poc/privacy",
+                      "termsOfUseUrl":  "https://dockerpoc-webapp01.azurewebsites.net/fmservicehub-poc/terms"
+                  },
+    "name":  {
+                 "short":  "FM Service Hub",
+                 "full":  "FM Service Hub RAG Bot"
+             },
+    "description":  {
+                        "short":  "Ask questions from FM Service Hub documents.",
+                        "full":  "FM Service Hub RAG Bot answers questions using the configured knowledge-bank documents."
+                    },
+    "icons":  {
+                  "color":  "color.png",
+                  "outline":  "outline.png"
+              },
+    "accentColor":  "#1F6F78",
+    "bots":  [
+                 {
+                     "botId":  "3056d42c-4d5f-4289-9d73-8048f7a24926",
+                     "scopes":  [
+                                    "personal",
+                                    "team",
+                                    "groupchat"
+                                ],
+                     "supportsFiles":  false,
+                     "isNotificationOnly":  false
+                 }
+             ],
+            "permissions": [
+    "identity",
+    "messageTeamMembers"
   ],
-  "validDomains": []
+    "validDomains":  [
+     "dockerpoc-webapp01.azurewebsites.net",
+     "token.botframework.com"
+
+                     ]
 }

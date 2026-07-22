@@ -1,7 +1,7 @@
-import base64
+﻿import base64
 
 from fastapi import Depends, FastAPI, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app.auth import require_user
@@ -15,6 +15,72 @@ app = FastAPI(title=get_settings().app_name)
 app.include_router(teams_router)
 VISUAL_ASSET_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/assets/visuals", StaticFiles(directory=VISUAL_ASSET_DIR), name="visuals")
+@app.get("/fmservicehub-poc", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/fmservicehub-poc/", response_class=HTMLResponse, include_in_schema=False)
+async def fmservicehub_home() -> str:
+    return """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>FM Service Hub</title>
+      </head>
+      <body>
+        <main>
+          <h1>FM Service Hub</h1>
+          <p>FM Service Hub is an Emergys Solutions Teams app for answering questions from configured FM Service Hub documents.</p>
+          <p><a href="/fmservicehub-poc/privacy">Privacy Policy</a> | <a href="/fmservicehub-poc/terms">Terms of Use</a></p>
+        </main>
+      </body>
+    </html>
+    """
+
+
+@app.get("/fmservicehub-poc/privacy", response_class=HTMLResponse, include_in_schema=False)
+async def fmservicehub_privacy() -> str:
+    return """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Privacy Policy - FM Service Hub</title>
+      </head>
+      <body>
+        <main>
+          <h1>Privacy Policy</h1>
+          <p>FM Service Hub is provided by Emergys Solutions for authorized users.</p>
+          <p>The app processes user questions and configured FM Service Hub document content to generate responses. It does not sell personal data.</p>
+          <p>Access to the app is controlled by the configured Microsoft Teams and Azure authentication settings.</p>
+          <p>For privacy questions, contact Emergys Solutions.</p>
+        </main>
+      </body>
+    </html>
+    """
+
+
+@app.get("/fmservicehub-poc/terms", response_class=HTMLResponse, include_in_schema=False)
+async def fmservicehub_terms() -> str:
+    return """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Terms of Use - FM Service Hub</title>
+      </head>
+      <body>
+        <main>
+          <h1>Terms of Use</h1>
+          <p>FM Service Hub is intended for authorized business use only.</p>
+          <p>Users are responsible for validating AI-generated answers before relying on them for business decisions.</p>
+          <p>The app and its outputs are provided according to the applicable agreement with Emergys Solutions.</p>
+          <p>Do not use the app to submit sensitive information unless your organization has approved that use.</p>
+        </main>
+      </body>
+    </html>
+    """
 
 
 def get_rag_service() -> RagService:
@@ -50,3 +116,4 @@ async def chat_image(
     _, encoded = data_url.split(",", 1)
     image_bytes = base64.b64decode(encoded)
     return Response(content=image_bytes, media_type="image/png")
+
