@@ -1,3 +1,5 @@
+﻿import logging
+
 from fastapi import APIRouter, Request, Response
 from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, TurnContext
 from botbuilder.schema import Activity, Attachment
@@ -7,9 +9,11 @@ from app.models import ChatRequest
 from app.rag import RagService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/api/messages")
+@router.post("/fmservicehub-poc/api/messages")
 async def messages(request: Request) -> Response:
     settings = get_settings()
     body = await request.json()
@@ -37,5 +41,12 @@ async def messages(request: Request) -> Response:
                 )
                 await turn_context.send_activity(Activity(type="message", attachments=[attachment]))
 
-    await adapter.process_activity(activity, auth_header, turn_logic)
+    try:
+        await adapter.process_activity(activity, auth_header, turn_logic)
+    except Exception:
+        logger.exception('Teams bot message handling failed')
+        raise
     return Response(status_code=201)
+
+
+
