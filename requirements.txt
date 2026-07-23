@@ -15,7 +15,6 @@ python-pptx==1.0.2
 botbuilder-core==4.16.2
 botbuilder-schema==4.16.2
 httpx==0.28.1
-streamlit==1.47.1
 
-fastembed
+fastembed==0.6.1
 aiohttp==3.12.15

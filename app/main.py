@@ -15,8 +15,7 @@ app = FastAPI(title=get_settings().app_name)
 app.include_router(teams_router)
 VISUAL_ASSET_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/assets/visuals", StaticFiles(directory=VISUAL_ASSET_DIR), name="visuals")
-@app.get("/fmservicehub-poc", response_class=HTMLResponse, include_in_schema=False)
-@app.get("/fmservicehub-poc/", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def fmservicehub_home() -> str:
     return """
     <!doctype html>
@@ -37,7 +36,7 @@ async def fmservicehub_home() -> str:
     """
 
 
-@app.get("/fmservicehub-poc/privacy", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/privacy", response_class=HTMLResponse, include_in_schema=False)
 async def fmservicehub_privacy() -> str:
     return """
     <!doctype html>
@@ -60,7 +59,7 @@ async def fmservicehub_privacy() -> str:
     """
 
 
-@app.get("/fmservicehub-poc/terms", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/terms", response_class=HTMLResponse, include_in_schema=False)
 async def fmservicehub_terms() -> str:
     return """
     <!doctype html>

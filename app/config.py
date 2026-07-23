@@ -19,7 +19,6 @@ class Settings(BaseSettings):
 
     azure_foundry_endpoint: str = ""
     azure_foundry_api_key: str = ""
-    azure_foundry_api_version: str = "2024-05-01-preview"
     azure_foundry_chat_model: str = ""
     azure_foundry_embedding_model: str = ""
 

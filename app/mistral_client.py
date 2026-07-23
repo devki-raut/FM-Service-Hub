@@ -85,7 +85,7 @@ class MistralService:
 
     async def _azure_foundry_post(self, path: str, payload: dict) -> dict:
         endpoint = self._settings.azure_foundry_endpoint.rstrip("/")
-        url = f"{endpoint}{path}?api-version={self._settings.azure_foundry_api_version}"
+        url = f"{endpoint}{path}"
         headers = {
             "Content-Type": "application/json",
             "api-key": self._settings.azure_foundry_api_key,
