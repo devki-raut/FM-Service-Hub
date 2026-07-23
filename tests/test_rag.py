@@ -1,7 +1,7 @@
 import asyncio
 
 from app.models import ChatRequest
-from app.rag import MISSING_DATA_ANSWER, RagService, SYSTEM_PROMPT, _filter_for_question
+from app.rag import MISSING_DATA_ANSWER, RagService, SYSTEM_PROMPT, _filter_for_question, _source_from_result, _top_k_for_question
 from app.search_store import SearchStore
 
 
@@ -56,13 +56,13 @@ def test_rag_does_not_return_sources_when_model_reports_missing_data():
     assert response.sources == []
 
 
-
-def test_filter_does_not_force_cx2000_manual_questions_to_excel():
-    assert _filter_for_question("What is CX2000 equipment commissioning procedure?") is None
+def test_filter_excludes_excel_for_cx2000_procedure_questions():
+    assert _filter_for_question("What is CX2000 equipment commissioning procedure?") == "file_type ne 'excel'"
 
 
 def test_filter_limits_explicit_complaint_questions_to_excel():
     assert _filter_for_question("What is the status of complaint AFKK25002022802?") == "file_type eq 'excel'"
+
 
 def test_filter_routes_explicit_cx2000_manual_questions_to_manual_pdf():
     assert _filter_for_question("From CX2000 Users Manual PDF explain calibration") == "document_name eq 'CX2000 Users Manual.pdf'"
@@ -72,14 +72,16 @@ def test_filter_excludes_excel_for_general_cx2000_questions():
     assert _filter_for_question("How to calibrate CX2000?") == "file_type ne 'excel'"
 
 
-def test_system_prompt_contains_alignment_and_conciseness_rules():
+def test_system_prompt_contains_alignment_completeness_and_reference_rules():
     assert "answer strictly from the retrieved source excerpts" in SYSTEM_PROMPT
     assert MISSING_DATA_ANSWER in SYSTEM_PROMPT
-    assert "short, precise, and to the point" in SYSTEM_PROMPT
+    assert "keep simple factual answers short" in SYSTEM_PROMPT
     assert "Use extractive wording" in SYSTEM_PROMPT
     assert "do not add qualifiers" in SYSTEM_PROMPT
     assert "Use this answer format for count questions" in SYSTEM_PROMPT
-    assert "Do not include source or excerpt labels" in SYSTEM_PROMPT
+    assert "include every step present" in SYSTEM_PROMPT
+    assert "reproduce the step wording as closely as possible" in SYSTEM_PROMPT
+    assert "Reference section" in SYSTEM_PROMPT
     assert "*(Source: Excerpt [n])*" not in SYSTEM_PROMPT
 
 
@@ -116,3 +118,22 @@ def test_rag_uses_excel_agent_before_vector_search():
     response = asyncio.run(service.answer(ChatRequest(question="What is the overall count Of complaints for CX2000 for 2025?")))
 
     assert "**1285 rows**" in response.answer
+
+
+def test_source_from_result_preserves_blob_url_for_reference_links():
+    source = _source_from_result(
+        {
+            "document_name": "Manual.pdf",
+            "page": 5,
+            "section": "Procedure",
+            "content": "A relevant procedure excerpt long enough to use in an answer.",
+            "blob_url": "https://storage.example.com/Manual.pdf",
+        }
+    )
+
+    assert source.source_url == "https://storage.example.com/Manual.pdf"
+
+
+def test_step_questions_retrieve_more_context():
+    assert _top_k_for_question("List the CX2000 calibration steps", 5) == 10
+    assert _top_k_for_question("What is COD?", 5) == 5

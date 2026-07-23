@@ -7,6 +7,7 @@ class Source(BaseModel):
     section: str | None = None
     score: float | None = None
     content: str
+    source_url: str | None = None
 
 
 class ImageReference(BaseModel):

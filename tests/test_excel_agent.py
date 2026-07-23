@@ -9,13 +9,17 @@ def test_excel_agent_answers_workbook_level_count():
     assert "**1198 unique Complaint No**" in response.answer
     assert "Created Date" in response.answer
     assert response.sources[0].document_name == "Vendor Copy of CX2000 Complaints 26.xlsx"
+    assert "Reference:" in response.answer
+    assert "Vendor Copy of CX2000 Complaints 26.xlsx" in response.answer
+    assert "pandas result" not in response.answer
 
 
 def test_excel_agent_answers_grouped_count():
     response = try_answer_excel_question("What is the count of complaints by status for 2025?")
 
     assert response is not None
-    assert response.answer == "Count by Complaint Status: CLOSED: 1266; ASSIGNED: 17; OPEN: 2."
+    assert response.answer.startswith("Count by Complaint Status: CLOSED: 1266; ASSIGNED: 17; OPEN: 2.")
+    assert "Reference:" in response.answer
 
 
 def test_excel_agent_ignores_non_aggregate_question():

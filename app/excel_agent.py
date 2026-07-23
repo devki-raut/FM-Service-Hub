@@ -10,6 +10,7 @@ import pandas as pd
 from app.config import get_settings
 from app.models import ChatResponse, Source
 from app.rag_constants import MISSING_DATA_ANSWER
+from app.source_refs import append_references
 
 AGGREGATE_TERMS = {
     "average",
@@ -276,9 +277,9 @@ def _count_answer(question: str, table_results: list[tuple[ExcelTable, pd.DataFr
         sources.append(_source_for_table(table, filtered, filters))
 
     if len(lines) == 1:
-        return ChatResponse(answer=lines[0], sources=sources)
+        return ChatResponse(answer=append_references(lines[0], sources), sources=sources)
     total = sum(len(filtered) for _, filtered, *_ in table_results)
-    return ChatResponse(answer=f"The overall matching Excel count is **{total} rows**.", sources=sources)
+    return ChatResponse(answer=append_references(f"The overall matching Excel count is **{total} rows**.", sources), sources=sources)
 
 
 def _grouped_count_answer(question: str, table_results: list[tuple[ExcelTable, pd.DataFrame, list[str], str | None, str | None]]) -> ChatResponse:
@@ -297,7 +298,7 @@ def _grouped_count_answer(question: str, table_results: list[tuple[ExcelTable, p
 
     if not lines:
         return ChatResponse(answer=MISSING_DATA_ANSWER, sources=[])
-    return ChatResponse(answer="\n".join(lines), sources=sources)
+    return ChatResponse(answer=append_references("\n".join(lines), sources), sources=sources)
 
 
 def _source_for_table(table: ExcelTable, filtered: pd.DataFrame, filters: list[str]) -> Source:
