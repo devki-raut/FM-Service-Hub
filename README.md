@@ -62,4 +62,12 @@ Configure the Bot Framework messaging endpoint as:
 https://<your-host>/fmservicehub-poc/api/messages
 ```
 
+Set `PUBLIC_BASE_URL` to the same externally reachable app base URL, including any path prefix:
+
+```text
+PUBLIC_BASE_URL=https://<your-host>/fmservicehub-poc
+```
+
+Teams fetches image attachments separately, so generated diagram URLs must be public HTTPS URLs that Teams can reach.
+
 The same retrieval pipeline is used for the REST chat endpoint and Teams.

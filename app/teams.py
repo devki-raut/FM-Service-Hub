@@ -1,12 +1,32 @@
-﻿from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response
 from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, TurnContext
 from botbuilder.schema import Activity, Attachment
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.models import ChatRequest
 from app.rag import RagService
 
 router = APIRouter()
+
+
+def _teams_asset_url(request: Request, settings: Settings, asset_path: str) -> str:
+    base_url = _public_base_url(request, settings)
+    return f"{base_url}/{asset_path.lstrip('/')}"
+
+
+def _public_base_url(request: Request, settings: Settings) -> str:
+    if settings.public_base_url:
+        return settings.public_base_url.rstrip("/")
+
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    forwarded_host = request.headers.get("x-forwarded-host")
+    forwarded_prefix = request.headers.get("x-forwarded-prefix", "")
+
+    proto = forwarded_proto.split(",", 1)[0].strip() if forwarded_proto else request.url.scheme
+    host = forwarded_host.split(",", 1)[0].strip() if forwarded_host else request.url.netloc
+    prefix = forwarded_prefix.rstrip("/")
+
+    return f"{proto}://{host}{prefix}".rstrip("/")
 
 
 @router.post("/api/messages")
@@ -15,7 +35,6 @@ async def messages(request: Request) -> Response:
     logging.warning(f"Received POST /api/messages, auth header present: {bool(request.headers.get('Authorization'))}")
     settings = get_settings()
     logging.warning(f"BOT_APP_ID set: {bool(settings.bot_app_id)}, PASSWORD set: {bool(settings.bot_app_password)}")
-    settings = get_settings()
     body = await request.json()
     activity = Activity().deserialize(body)
     auth_header = request.headers.get("Authorization", "")
@@ -42,11 +61,12 @@ async def messages(request: Request) -> Response:
             return
         await turn_context.send_activity(response.answer)
         if response.images:
-            base_url = str(request.base_url).rstrip("/")
             for image in response.images:
+                content_url = _teams_asset_url(request, settings, image.url)
                 attachment = Attachment(
                     content_type="image/png",
-                    content_url=f"{base_url}{image.url}",
+                    content_url=content_url,
+                    thumbnail_url=content_url,
                     name=image.caption or image.document_name,
                 )
                 await turn_context.send_activity(Activity(type="message", attachments=[attachment]))

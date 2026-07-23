@@ -39,6 +39,7 @@ class Settings(BaseSettings):
 
     bot_app_id: str = ""
     bot_app_password: str = ""
+    public_base_url: str = ""
 
     chunk_size: int = Field(default=1200, ge=200)
     chunk_overlap: int = Field(default=180, ge=0)
